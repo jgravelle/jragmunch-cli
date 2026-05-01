@@ -1,5 +1,11 @@
 # jragmunch-cli
 
+[![PyPI version](https://img.shields.io/pypi/v/jragmunch.svg)](https://pypi.org/project/jragmunch/)
+[![Downloads](https://img.shields.io/pypi/dm/jragmunch.svg)](https://pypistats.org/packages/jragmunch)
+[![Python versions](https://img.shields.io/pypi/pyversions/jragmunch.svg)](https://pypi.org/project/jragmunch/)
+[![License](https://img.shields.io/pypi/l/jragmunch.svg)](https://github.com/jgravelle/jragmunch-cli/blob/master/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/jgravelle/jragmunch-cli?style=social)](https://github.com/jgravelle/jragmunch-cli/stargazers)
+
 **Maximal token-efficient RAG for headless Claude.** Uses your existing `claude` CLI; auth-agnostic; slice-level retrieval powered by [jcodemunch-mcp](https://github.com/jgravelle/jcodemunch-mcp).
 
 ## Billing: subscription by default, API on opt-in
