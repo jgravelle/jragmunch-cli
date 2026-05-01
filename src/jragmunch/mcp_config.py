@@ -12,6 +12,8 @@ from pathlib import Path
 
 
 DEFAULT_JCODEMUNCH_COMMAND = "jcodemunch-mcp"
+DEFAULT_JDOCMUNCH_COMMAND = "jdocmunch-mcp"
+DEFAULT_JDATAMUNCH_COMMAND = "jdatamunch-mcp"
 
 
 @dataclass
@@ -29,14 +31,24 @@ class McpServerSpec:
         return d
 
 
-def default_servers() -> dict[str, McpServerSpec]:
-    return {
+def default_servers(*, with_docs: bool = False, with_data: bool = False) -> dict[str, McpServerSpec]:
+    servers: dict[str, McpServerSpec] = {
         "jcodemunch": McpServerSpec(command=DEFAULT_JCODEMUNCH_COMMAND),
     }
+    if with_docs:
+        servers["jdocmunch"] = McpServerSpec(command=DEFAULT_JDOCMUNCH_COMMAND)
+    if with_data:
+        servers["jdatamunch"] = McpServerSpec(command=DEFAULT_JDATAMUNCH_COMMAND)
+    return servers
 
 
-def build_config(servers: dict[str, McpServerSpec] | None = None) -> dict:
-    servers = servers or default_servers()
+def build_config(
+    servers: dict[str, McpServerSpec] | None = None,
+    *,
+    with_docs: bool = False,
+    with_data: bool = False,
+) -> dict:
+    servers = servers or default_servers(with_docs=with_docs, with_data=with_data)
     return {"mcpServers": {name: spec.to_dict() for name, spec in servers.items()}}
 
 
@@ -47,5 +59,10 @@ def write_config(path: Path, servers: dict[str, McpServerSpec] | None = None) ->
     return path
 
 
-def as_inline_json(servers: dict[str, McpServerSpec] | None = None) -> str:
-    return json.dumps(build_config(servers))
+def as_inline_json(
+    servers: dict[str, McpServerSpec] | None = None,
+    *,
+    with_docs: bool = False,
+    with_data: bool = False,
+) -> str:
+    return json.dumps(build_config(servers, with_docs=with_docs, with_data=with_data))

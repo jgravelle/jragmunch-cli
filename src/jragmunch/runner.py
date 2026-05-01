@@ -54,6 +54,10 @@ def build_argv(spec: RunSpec) -> list[str]:
 
 
 def run(spec: RunSpec, *, timeout: float | None = None) -> StreamResult:
+    from . import runtime  # local import to avoid cycle
+
+    if runtime.get().print_command:
+        return StreamResult(text=format_command(spec))
     argv = build_argv(spec)
     proc = subprocess.run(
         argv,

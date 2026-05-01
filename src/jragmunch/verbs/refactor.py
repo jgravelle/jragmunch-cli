@@ -13,6 +13,7 @@ from pathlib import Path
 
 from ..fanout import FanoutItem, FanoutOutcome, fan_out
 from ..mcp_config import as_inline_json
+from ..runtime import mcp_inline
 from ..runner import RunSpec
 
 
@@ -75,7 +76,7 @@ def _enumerate_targets(req: RefactorRequest) -> list[str]:
 
     spec = RunSpec(
         prompt=_enumerate_prompt(req),
-        mcp_config_inline=as_inline_json(),
+        mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo],
         model=req.model,
         cwd=req.repo,
@@ -99,7 +100,7 @@ def execute(req: RefactorRequest) -> RefactorResponse:
             key=t,
             spec=RunSpec(
                 prompt=_target_prompt(req, t),
-                mcp_config_inline=as_inline_json(),
+                mcp_config_inline=mcp_inline(),
                 add_dirs=[req.repo],
                 model=req.model,
                 cwd=req.repo,

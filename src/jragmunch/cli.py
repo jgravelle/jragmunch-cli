@@ -8,7 +8,7 @@ from typing import Optional
 
 import typer
 
-from . import __version__
+from . import __version__, runtime
 from .verbs import ask as ask_verb
 from .verbs import changelog as changelog_verb
 from .verbs import doctor as doctor_verb
@@ -26,6 +26,23 @@ app = typer.Typer(
     no_args_is_help=True,
     add_completion=False,
 )
+
+
+_globals: dict = {"print_command": False, "with_docs": False, "with_data": False}
+
+
+@app.callback()
+def _root(
+    print_command: bool = typer.Option(
+        False, "--print-command", help="Print the claude -p invocation that would run, then exit."
+    ),
+    with_docs: bool = typer.Option(False, "--with-docs", help="Also wire jdocmunch MCP."),
+    with_data: bool = typer.Option(False, "--with-data", help="Also wire jdatamunch MCP."),
+) -> None:
+    _globals["print_command"] = print_command
+    _globals["with_docs"] = with_docs
+    _globals["with_data"] = with_data
+    runtime.set_state(print_command=print_command, with_docs=with_docs, with_data=with_data)
 
 
 def _emit(meta: dict) -> None:

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from ..fanout import FanoutItem, FanoutOutcome, fan_out
 from ..mcp_config import as_inline_json
+from ..runtime import mcp_inline
 from ..runner import RunSpec, run as run_subprocess
 
 
@@ -68,7 +69,7 @@ def _target_prompt(req: TestsRequest, target: str) -> str:
 def _enumerate_targets(req: TestsRequest) -> list[str]:
     spec = RunSpec(
         prompt=_enumerate_prompt(req),
-        mcp_config_inline=as_inline_json(),
+        mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo],
         model=req.model,
         cwd=req.repo,
@@ -91,7 +92,7 @@ def execute(req: TestsRequest) -> TestsResponse:
             key=t,
             spec=RunSpec(
                 prompt=_target_prompt(req, t),
-                mcp_config_inline=as_inline_json(),
+                mcp_config_inline=mcp_inline(),
                 add_dirs=[req.repo],
                 model=req.model,
                 cwd=req.repo,

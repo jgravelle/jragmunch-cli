@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .. import gitctx
 from ..mcp_config import as_inline_json
+from ..runtime import mcp_inline
 from ..parsers import StreamResult
 from ..runner import RunSpec, run
 
@@ -76,7 +77,7 @@ def execute(req: ChangelogRequest) -> ChangelogResponse:
         )
     spec = RunSpec(
         prompt=_build_prompt(req, commits),
-        mcp_config_inline=as_inline_json(),
+        mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo],
         model=req.model,
         cwd=req.repo,

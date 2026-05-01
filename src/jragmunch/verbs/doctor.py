@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ..mcp_config import as_inline_json
+from ..runtime import mcp_inline
 from ..parsers import has_server
 from ..runner import RunSpec, claude_path, run
 
@@ -45,7 +46,7 @@ def diagnose() -> DoctorReport:
         )
     spec = RunSpec(
         prompt="ping. respond with 'pong' and nothing else.",
-        mcp_config_inline=as_inline_json(),
+        mcp_config_inline=mcp_inline(),
     )
     result = run(spec, timeout=60)
     return DoctorReport(

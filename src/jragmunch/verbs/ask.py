@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..mcp_config import as_inline_json
+from ..runtime import mcp_inline
 from ..parsers import StreamResult
 from ..runner import RunSpec, run
 
@@ -55,7 +56,7 @@ def _build_prompt(req: AskRequest) -> str:
 def execute(req: AskRequest) -> AskResponse:
     spec = RunSpec(
         prompt=_build_prompt(req),
-        mcp_config_inline=as_inline_json(),
+        mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo] if req.repo else [],
         model=req.model,
         cwd=req.repo,

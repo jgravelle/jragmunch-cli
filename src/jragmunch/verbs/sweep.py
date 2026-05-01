@@ -6,6 +6,7 @@ from pathlib import Path
 
 from ..fanout import FanoutItem, FanoutOutcome, fan_out
 from ..mcp_config import as_inline_json
+from ..runtime import mcp_inline
 from ..runner import RunSpec, run as run_subprocess
 
 
@@ -66,7 +67,7 @@ def _target_prompt(req: SweepRequest, occurrence: str) -> str:
 def _enumerate(req: SweepRequest) -> list[str]:
     spec = RunSpec(
         prompt=_enumerate_prompt(req),
-        mcp_config_inline=as_inline_json(),
+        mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo],
         model=req.model,
         cwd=req.repo,
@@ -94,7 +95,7 @@ def execute(req: SweepRequest) -> SweepResponse:
             key=occ,
             spec=RunSpec(
                 prompt=_target_prompt(req, occ),
-                mcp_config_inline=as_inline_json(),
+                mcp_config_inline=mcp_inline(),
                 add_dirs=[req.repo],
                 model=req.model,
                 cwd=req.repo,
