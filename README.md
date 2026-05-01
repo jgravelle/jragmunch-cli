@@ -35,11 +35,37 @@ Every verb prints the cost split:
 - **`auth`** — `subscription` or `api`. Run `jragmunch doctor` to see your
   resolved mode.
 
+### When to use which mode
+
+Anthropic's [Claude Code Legal and Compliance docs](https://code.claude.com/docs/en/legal-and-compliance)
+distinguish *individual ordinary use* from *business / always-on / multi-contributor* use.
+jragmunch's defaults are tuned to that line.
+
+| You are… | Recommended mode | Why |
+|---|---|---|
+| A solo developer running verbs interactively on your own machine | **subscription** (default) | Anthropic explicitly permits "ordinary, individual usage of Claude Code." |
+| A solo developer wiring `jragmunch review` into your **own personal repo's CI** with `CLAUDE_CODE_OAUTH_TOKEN` | **subscription** (default) | Permitted as long as you're the only contributor whose work it acts on. |
+| A team running CI bots on a shared/commercial repo | `--use-api` | Anthropic requires API keys for "business or always-on deployments." |
+| Multi-developer or commercial automation | `--use-api` | Subscriptions are not the right billing surface for shared use. |
+| Heavy parallel fan-out (`refactor --parallel 16`, `tests --max 100`) | `--use-api` | High-throughput patterns aren't what subscription session limits are designed for. |
+
+When in doubt, pass `--use-api` and bring your own `ANTHROPIC_API_KEY`.
+
+### What jragmunch is *not*
+
+jragmunch is **not** an "agent harness" or a re-implementation of Claude Code.
+It shells out to the official `claude` CLI binary you installed via
+`npm install -g @anthropic-ai/claude-code` and parses its `--output-format
+stream-json` output. It does not replace, wrap, or proxy Anthropic's models —
+it just gives `claude -p` better retrieval via MCP. Anthropic's TOS permits
+this category of usage; the policy nuance above is about *where* you run it,
+not *what tool* you run.
+
 ## Why
 
-Headless Claude (`claude -p`) is the right substrate for code automation — CI bots, batch refactors, fan-out agents, internal "chat with your repo" services. The default pattern is "stuff the relevant files into the prompt and pray," which burns tokens on code the model never needed.
+Headless Claude (`claude -p`) is the right substrate for retrieval-driven workflows — code Q&A, diff-aware review, batch refactors, "chat with your repo" use cases. The default pattern is "stuff the relevant files into the prompt and pray," which burns tokens on code the model never needed.
 
-`jragmunch` wraps `claude -p` with jcodemunch pre-wired so the model retrieves slices on demand instead of receiving giant context dumps.
+`jragmunch` wraps `claude -p` with jcodemunch pre-wired so the model retrieves slices on demand instead of receiving giant context dumps. (For team or always-on CI usage, see [the auth-mode table above](#when-to-use-which-mode) — pass `--use-api` and bring your own API key.)
 
 ## Install
 
@@ -73,7 +99,6 @@ jragmunch run "Refactor the rate-limiter to use a token bucket"
 | `tests` | shipped | Generate tests for untested symbols |
 | `sweep` | shipped | Pattern-driven cleanup |
 
-See [PRD.md](PRD.md) for the full product spec.
 
 ## Principles
 
