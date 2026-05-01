@@ -34,8 +34,8 @@ jragmunch run "Refactor the rate-limiter to use a token bucket"
 | `ask` | shipped | Retrieval-augmented Q&A |
 | `index` | shipped | Index a repo via jcodemunch |
 | `run` | shipped | Power-user prompt passthrough |
-| `review` | planned | Diff-aware PR review |
-| `changelog` | planned | Summarize changes since tag |
+| `review` | shipped | Diff-aware PR review |
+| `changelog` | shipped | Summarize changes since tag |
 | `refactor` | planned | Fan-out batch refactor |
 | `tests` | planned | Generate tests for untested symbols |
 | `sweep` | planned | Pattern-driven cleanup |

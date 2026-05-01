@@ -10,8 +10,10 @@ import typer
 
 from . import __version__
 from .verbs import ask as ask_verb
+from .verbs import changelog as changelog_verb
 from .verbs import doctor as doctor_verb
 from .verbs import index as index_verb
+from .verbs import review as review_verb
 from .verbs import run_passthrough
 
 
@@ -135,6 +137,90 @@ def run_cmd(
         typer.echo(result.text)
         _emit(meta)
     raise typer.Exit(code=1 if result.error else 0)
+
+
+@app.command()
+def review(
+    base: str = typer.Option("main", "--base", help="Base ref to diff against."),
+    head: str = typer.Option("HEAD", "--head", help="Head ref."),
+    repo: Optional[Path] = typer.Option(None, "--repo", help="Repo path (default: cwd)."),
+    severity: str = typer.Option("low", "--severity", help="Minimum severity (low|med|high)."),
+    model: Optional[str] = typer.Option(None, "--model", help="Override model id."),
+    json_out: bool = typer.Option(False, "--json", help="Emit JSON on stdout."),
+) -> None:
+    """Diff-aware review using jcodemunch slice retrieval."""
+    req = review_verb.ReviewRequest(
+        repo=repo or Path.cwd(),
+        base=base,
+        head=head,
+        severity=severity,
+        model=model,
+    )
+    resp = review_verb.execute(req)
+    if resp.error:
+        typer.echo(f"error: {resp.error}", err=True)
+    if json_out:
+        typer.echo(
+            json.dumps(
+                {
+                    "verb": "review",
+                    "base": resp.base,
+                    "head": resp.head,
+                    "changed_files": resp.changed_files,
+                    "result": resp.result,
+                    "_meta": resp.meta,
+                    "error": resp.error,
+                },
+                indent=2,
+            )
+        )
+    else:
+        typer.echo(resp.result)
+        if resp.meta:
+            _emit(resp.meta)
+    raise typer.Exit(code=1 if resp.error else 0)
+
+
+@app.command()
+def changelog(
+    since: str = typer.Option(..., "--since", help="Tag or ref to start from."),
+    head: str = typer.Option("HEAD", "--head", help="Head ref."),
+    repo: Optional[Path] = typer.Option(None, "--repo", help="Repo path (default: cwd)."),
+    fmt: str = typer.Option("md", "--format", help="Output format: md|json."),
+    model: Optional[str] = typer.Option(None, "--model", help="Override model id."),
+    json_out: bool = typer.Option(False, "--json", help="Wrap full response in JSON envelope."),
+) -> None:
+    """Summarize changes since a tag using slice retrieval."""
+    req = changelog_verb.ChangelogRequest(
+        repo=repo or Path.cwd(),
+        since=since,
+        head=head,
+        fmt=fmt,
+        model=model,
+    )
+    resp = changelog_verb.execute(req)
+    if resp.error:
+        typer.echo(f"error: {resp.error}", err=True)
+    if json_out:
+        typer.echo(
+            json.dumps(
+                {
+                    "verb": "changelog",
+                    "since": resp.since,
+                    "head": resp.head,
+                    "commits": resp.commits,
+                    "result": resp.result,
+                    "_meta": resp.meta,
+                    "error": resp.error,
+                },
+                indent=2,
+            )
+        )
+    else:
+        typer.echo(resp.result)
+        if resp.meta:
+            _emit(resp.meta)
+    raise typer.Exit(code=1 if resp.error else 0)
 
 
 def main() -> None:
