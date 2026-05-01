@@ -36,9 +36,9 @@ jragmunch run "Refactor the rate-limiter to use a token bucket"
 | `run` | shipped | Power-user prompt passthrough |
 | `review` | shipped | Diff-aware PR review |
 | `changelog` | shipped | Summarize changes since tag |
-| `refactor` | planned | Fan-out batch refactor |
-| `tests` | planned | Generate tests for untested symbols |
-| `sweep` | planned | Pattern-driven cleanup |
+| `refactor` | shipped | Fan-out batch refactor |
+| `tests` | shipped | Generate tests for untested symbols |
+| `sweep` | shipped | Pattern-driven cleanup |
 
 See [PRD.md](PRD.md) for the full product spec.
 

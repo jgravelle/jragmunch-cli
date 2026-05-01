@@ -13,8 +13,11 @@ from .verbs import ask as ask_verb
 from .verbs import changelog as changelog_verb
 from .verbs import doctor as doctor_verb
 from .verbs import index as index_verb
+from .verbs import refactor as refactor_verb
 from .verbs import review as review_verb
 from .verbs import run_passthrough
+from .verbs import sweep as sweep_verb
+from .verbs import tests_gen as tests_verb
 
 
 app = typer.Typer(
@@ -221,6 +224,141 @@ def changelog(
         if resp.meta:
             _emit(resp.meta)
     raise typer.Exit(code=1 if resp.error else 0)
+
+
+@app.command()
+def refactor(
+    description: str = typer.Argument(..., help="Refactor description."),
+    targets: str = typer.Option(..., "--targets", help="Search query for refactor targets."),
+    repo: Optional[Path] = typer.Option(None, "--repo", help="Repo path (default: cwd)."),
+    parallel: int = typer.Option(4, "--parallel", help="Parallel subprocess count."),
+    max_targets: int = typer.Option(50, "--max", help="Maximum targets to refactor."),
+    dry_run: bool = typer.Option(True, "--dry-run/--apply", help="Dry-run (default) or apply."),
+    model: Optional[str] = typer.Option(None, "--model"),
+    json_out: bool = typer.Option(False, "--json"),
+) -> None:
+    """Fan-out batch refactor across matched targets (dry-run by default)."""
+    req = refactor_verb.RefactorRequest(
+        repo=repo or Path.cwd(),
+        description=description,
+        targets_query=targets,
+        dry_run=dry_run,
+        parallel=parallel,
+        max_targets=max_targets,
+        model=model,
+    )
+    resp = refactor_verb.execute(req)
+    if json_out:
+        typer.echo(
+            json.dumps(
+                {
+                    "verb": "refactor",
+                    "description": resp.description,
+                    "targets": resp.targets,
+                    "diffs": resp.diffs,
+                    "errors": resp.errors,
+                    "_meta": resp.aggregate_meta,
+                    "_meta_per_target": resp.meta_per_target,
+                },
+                indent=2,
+            )
+        )
+    else:
+        typer.echo(f"# Refactor: {resp.description}")
+        typer.echo(f"# Targets: {len(resp.targets)} | Errors: {len(resp.errors)}")
+        for key, diff in resp.diffs.items():
+            typer.echo(f"\n## {key}\n{diff}")
+        for key, err in resp.errors.items():
+            typer.echo(f"\n## ERROR: {key}\n{err}", err=True)
+        _emit(resp.aggregate_meta)
+    raise typer.Exit(code=1 if resp.errors and not resp.diffs else 0)
+
+
+@app.command()
+def tests(
+    symbols: Optional[str] = typer.Option(None, "--symbols", help="Symbol-name filter."),
+    repo: Optional[Path] = typer.Option(None, "--repo"),
+    max_targets: int = typer.Option(20, "--max"),
+    parallel: int = typer.Option(4, "--parallel"),
+    model: Optional[str] = typer.Option(None, "--model"),
+    json_out: bool = typer.Option(False, "--json"),
+) -> None:
+    """Generate tests for untested symbols via fan-out."""
+    req = tests_verb.TestsRequest(
+        repo=repo or Path.cwd(),
+        symbols_query=symbols,
+        max_targets=max_targets,
+        parallel=parallel,
+        model=model,
+    )
+    resp = tests_verb.execute(req)
+    if json_out:
+        typer.echo(
+            json.dumps(
+                {
+                    "verb": "tests",
+                    "targets": resp.targets,
+                    "files": resp.files,
+                    "errors": resp.errors,
+                    "_meta": resp.aggregate_meta,
+                },
+                indent=2,
+            )
+        )
+    else:
+        typer.echo(f"# Tests generated: {len(resp.files)} | Errors: {len(resp.errors)}")
+        for key, body in resp.files.items():
+            typer.echo(f"\n## {key}\n{body}")
+        for key, err in resp.errors.items():
+            typer.echo(f"\n## ERROR: {key}\n{err}", err=True)
+        _emit(resp.aggregate_meta)
+    raise typer.Exit(code=1 if resp.errors and not resp.files else 0)
+
+
+@app.command()
+def sweep(
+    pattern: str = typer.Argument(..., help="Pattern to sweep (e.g. 'TODO\\(remove\\)')."),
+    action: str = typer.Option("report", "--action", help="remove|annotate|report"),
+    repo: Optional[Path] = typer.Option(None, "--repo"),
+    max_targets: int = typer.Option(100, "--max"),
+    parallel: int = typer.Option(4, "--parallel"),
+    model: Optional[str] = typer.Option(None, "--model"),
+    json_out: bool = typer.Option(False, "--json"),
+) -> None:
+    """Pattern-driven cleanup sweep (TODO removal, deprecation migration, etc.)."""
+    req = sweep_verb.SweepRequest(
+        repo=repo or Path.cwd(),
+        pattern=pattern,
+        action=action,
+        parallel=parallel,
+        max_targets=max_targets,
+        model=model,
+    )
+    resp = sweep_verb.execute(req)
+    if json_out:
+        typer.echo(
+            json.dumps(
+                {
+                    "verb": "sweep",
+                    "pattern": resp.pattern,
+                    "action": resp.action,
+                    "occurrences": resp.occurrences,
+                    "outputs": resp.outputs,
+                    "errors": resp.errors,
+                    "_meta": resp.aggregate_meta,
+                },
+                indent=2,
+            )
+        )
+    else:
+        typer.echo(f"# Sweep: {resp.pattern} ({resp.action})")
+        typer.echo(f"# Occurrences: {len(resp.occurrences)} | Errors: {len(resp.errors)}")
+        for key, body in resp.outputs.items():
+            typer.echo(f"\n## {key}\n{body}")
+        for key, err in resp.errors.items():
+            typer.echo(f"\n## ERROR: {key}\n{err}", err=True)
+        _emit(resp.aggregate_meta)
+    raise typer.Exit(code=1 if resp.errors and not resp.outputs else 0)
 
 
 def main() -> None:
