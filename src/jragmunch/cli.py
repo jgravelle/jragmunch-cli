@@ -6,6 +6,17 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+
+# Force UTF-8 on stdout/stderr at import time so en-dashes / smart quotes
+# from claude don't garble into mojibake on Windows cp1252 consoles.
+# Must run before typer/rich import to avoid them caching the default codec.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+    except (AttributeError, ValueError):
+        pass
+
+
 import typer
 
 from . import __version__, runtime
