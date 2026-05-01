@@ -9,6 +9,7 @@ from typing import Optional
 import typer
 
 from . import __version__, runtime
+from .auth import actual_cost, detect_auth
 from .verbs import ask as ask_verb
 from .verbs import changelog as changelog_verb
 from .verbs import doctor as doctor_verb
@@ -45,11 +46,37 @@ def _root(
     runtime.set_state(print_command=print_command, with_docs=with_docs, with_data=with_data)
 
 
+def _finalize_meta(meta: dict) -> dict:
+    """Augment a verb's _meta with auth-aware cost fields.
+
+    Adds:
+      - cost_notional_usd : what claude reported (would-be API price)
+      - cost_actual_usd   : what you were actually billed (0 on subscription)
+      - auth_mode         : 'api' | 'subscription'
+
+    Leaves the original cost_usd field alone for back-compat.
+    """
+    if not meta:
+        return meta
+    mode = detect_auth()
+    notional = float(meta.get("cost_usd", 0.0))
+    out = dict(meta)
+    out["cost_notional_usd"] = notional
+    out["cost_actual_usd"] = actual_cost(notional, mode)
+    out["auth_mode"] = mode
+    return out
+
+
 def _emit(meta: dict) -> None:
     """Print cost line to stderr."""
+    if not meta:
+        return
+    mode = detect_auth()
+    notional = float(meta.get("cost_usd", 0.0))
+    actual = actual_cost(notional, mode)
     line = (
         f"[tokens in={meta.get('tokens_in', 0)} out={meta.get('tokens_out', 0)}  "
-        f"cost=${meta.get('cost_usd', 0.0):.4f}  "
+        f"cost actual=${actual:.4f} (notional=${notional:.4f}, auth={mode})  "
         f"time={meta.get('wall_time_ms', 0)}ms]"
     )
     typer.echo(line, err=True)
@@ -95,7 +122,7 @@ def ask(
                     "question": resp.question,
                     "result": resp.result,
                     "citations": resp.citations,
-                    "_meta": resp.meta,
+                    "_meta": _finalize_meta(resp.meta),
                     "error": resp.error,
                 },
                 indent=2,
@@ -147,7 +174,7 @@ def run_cmd(
     if json_out:
         typer.echo(
             json.dumps(
-                {"verb": "run", "result": result.text, "_meta": meta, "error": result.error},
+                {"verb": "run", "result": result.text, "_meta": _finalize_meta(meta), "error": result.error},
                 indent=2,
             )
         )
@@ -188,7 +215,7 @@ def review(
                     "head": resp.head,
                     "changed_files": resp.changed_files,
                     "result": resp.result,
-                    "_meta": resp.meta,
+                    "_meta": _finalize_meta(resp.meta),
                     "error": resp.error,
                 },
                 indent=2,
@@ -230,7 +257,7 @@ def changelog(
                     "head": resp.head,
                     "commits": resp.commits,
                     "result": resp.result,
-                    "_meta": resp.meta,
+                    "_meta": _finalize_meta(resp.meta),
                     "error": resp.error,
                 },
                 indent=2,
@@ -274,7 +301,7 @@ def refactor(
                     "targets": resp.targets,
                     "diffs": resp.diffs,
                     "errors": resp.errors,
-                    "_meta": resp.aggregate_meta,
+                    "_meta": _finalize_meta(resp.aggregate_meta),
                     "_meta_per_target": resp.meta_per_target,
                 },
                 indent=2,
@@ -317,7 +344,7 @@ def tests(
                     "targets": resp.targets,
                     "files": resp.files,
                     "errors": resp.errors,
-                    "_meta": resp.aggregate_meta,
+                    "_meta": _finalize_meta(resp.aggregate_meta),
                 },
                 indent=2,
             )
@@ -362,7 +389,7 @@ def sweep(
                     "occurrences": resp.occurrences,
                     "outputs": resp.outputs,
                     "errors": resp.errors,
-                    "_meta": resp.aggregate_meta,
+                    "_meta": _finalize_meta(resp.aggregate_meta),
                 },
                 indent=2,
             )
