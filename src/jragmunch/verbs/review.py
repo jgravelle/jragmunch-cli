@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .. import gitctx
+from ..defaults import for_verb
 from ..mcp_config import as_inline_json
 from ..runtime import mcp_inline
 from ..parsers import StreamResult
@@ -80,11 +81,13 @@ def execute(req: ReviewRequest) -> ReviewResponse:
             result="No changed files between base and head.",
             meta={},
         )
+    default_model, max_turns = for_verb("review")
     spec = RunSpec(
         prompt=_build_prompt(req, summary),
         mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo],
-        model=req.model,
+        model=req.model or default_model,
+        max_turns=max_turns,
         cwd=req.repo,
     )
     result = run(spec)

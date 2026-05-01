@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ..defaults import for_verb
 from ..fanout import FanoutItem, FanoutOutcome, fan_out
 from ..mcp_config import as_inline_json
 from ..runtime import mcp_inline
@@ -65,11 +66,13 @@ def _target_prompt(req: SweepRequest, occurrence: str) -> str:
 
 
 def _enumerate(req: SweepRequest) -> list[str]:
+    default_model, max_turns = for_verb("sweep")
     spec = RunSpec(
         prompt=_enumerate_prompt(req),
         mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo],
-        model=req.model,
+        model=req.model or default_model,
+        max_turns=max_turns,
         cwd=req.repo,
     )
     result = run_subprocess(spec)
@@ -90,6 +93,7 @@ def execute(req: SweepRequest) -> SweepResponse:
     occurrences = _enumerate(req)
     if not occurrences:
         return SweepResponse(pattern=req.pattern, action=req.action, occurrences=[])
+    default_model, max_turns = for_verb("sweep")
     items = [
         FanoutItem(
             key=occ,
@@ -97,7 +101,8 @@ def execute(req: SweepRequest) -> SweepResponse:
                 prompt=_target_prompt(req, occ),
                 mcp_config_inline=mcp_inline(),
                 add_dirs=[req.repo],
-                model=req.model,
+                model=req.model or default_model,
+                max_turns=max_turns,
                 cwd=req.repo,
             ),
         )

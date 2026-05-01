@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from ..defaults import for_verb
 from ..mcp_config import as_inline_json
 from ..runtime import mcp_inline
 from ..parsers import StreamResult
@@ -11,11 +12,14 @@ from ..runner import RunSpec, run
 
 
 SYSTEM_PREAMBLE = (
-    "You answer questions about a code repository. "
-    "ALWAYS use jcodemunch MCP tools (search_symbols, get_symbol_source, "
+    "You answer questions about a code repository concisely. "
+    "Use jcodemunch MCP tools (search_symbols, get_symbol_source, "
     "get_file_outline, get_call_hierarchy, search_text) to retrieve only the "
-    "slices you need. Do NOT read whole files unless a tool result tells you to. "
-    "Cite each claim with file paths and symbol names you actually retrieved."
+    "slices you need. Prefer ONE good search_symbols call followed by ONE or "
+    "TWO get_symbol_source calls; do not explore beyond what the question "
+    "requires. Do NOT read whole files. Cite each claim with file paths and "
+    "line ranges from the slices you retrieved. Keep answers under 200 words "
+    "unless the question explicitly asks for more."
 )
 
 
@@ -54,11 +58,13 @@ def _build_prompt(req: AskRequest) -> str:
 
 
 def execute(req: AskRequest) -> AskResponse:
+    default_model, max_turns = for_verb("ask")
     spec = RunSpec(
         prompt=_build_prompt(req),
         mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo] if req.repo else [],
-        model=req.model,
+        model=req.model or default_model,
+        max_turns=max_turns,
         cwd=req.repo,
     )
     result = run(spec)

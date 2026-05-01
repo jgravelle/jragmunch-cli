@@ -29,7 +29,7 @@ Write-Host "# No file dumped into the prompt — only the slices the model retri
 Beat "ask"
 
 # ---- Beat 4: the money shot ----
-$q = "How does the secret-redaction layer work, and which response fields does it touch?"
+$q = "How do we force an index refresh?"
 Write-Host "PS> jragmunch ask `"$q`" --repo C:\MCPs\jcodemunch-mcp" -ForegroundColor Cyan
 Write-Host ""
 jragmunch ask $q --repo C:\MCPs\jcodemunch-mcp

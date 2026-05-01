@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .. import gitctx
+from ..defaults import for_verb
 from ..mcp_config import as_inline_json
 from ..runtime import mcp_inline
 from ..parsers import StreamResult
@@ -75,11 +76,13 @@ def execute(req: ChangelogRequest) -> ChangelogResponse:
             result=f"No commits between {req.since} and {req.head}.",
             meta={},
         )
+    default_model, max_turns = for_verb("changelog")
     spec = RunSpec(
         prompt=_build_prompt(req, commits),
         mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo],
-        model=req.model,
+        model=req.model or default_model,
+        max_turns=max_turns,
         cwd=req.repo,
     )
     result = run(spec)

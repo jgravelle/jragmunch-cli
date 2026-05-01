@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jragmunch"
-version = "0.4.3"
+version = "0.4.4"
 description = "Maximal token-efficient RAG for headless Claude. Uses your existing claude CLI; auth-agnostic; slice-level retrieval."
 readme = "README.md"
 requires-python = ">=3.10"

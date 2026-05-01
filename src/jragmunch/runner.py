@@ -31,6 +31,7 @@ class RunSpec:
     mcp_config_inline: str | None = None
     add_dirs: list[Path] = field(default_factory=list)
     model: str | None = None
+    max_turns: int | None = None
     permission_mode: str = "default"
     cwd: Path | None = None
     extra_args: list[str] = field(default_factory=list)
@@ -54,6 +55,8 @@ def build_argv(spec: RunSpec) -> list[str]:
         argv += ["--add-dir", str(d)]
     if spec.model:
         argv += ["--model", spec.model]
+    if spec.max_turns is not None:
+        argv += ["--max-turns", str(spec.max_turns)]
     if spec.permission_mode and spec.permission_mode != "default":
         argv += ["--permission-mode", spec.permission_mode]
     argv += spec.extra_args

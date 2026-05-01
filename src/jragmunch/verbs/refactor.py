@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ..defaults import for_verb
 from ..fanout import FanoutItem, FanoutOutcome, fan_out
 from ..mcp_config import as_inline_json
 from ..runtime import mcp_inline
@@ -74,11 +75,13 @@ def _target_prompt(req: RefactorRequest, target: str) -> str:
 def _enumerate_targets(req: RefactorRequest) -> list[str]:
     from ..runner import run as run_subprocess
 
+    default_model, max_turns = for_verb("refactor")
     spec = RunSpec(
         prompt=_enumerate_prompt(req),
         mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo],
-        model=req.model,
+        model=req.model or default_model,
+        max_turns=max_turns,
         cwd=req.repo,
     )
     result = run_subprocess(spec)
@@ -95,6 +98,7 @@ def execute(req: RefactorRequest) -> RefactorResponse:
     if not targets:
         return RefactorResponse(description=req.description, targets=[])
 
+    default_model, max_turns = for_verb("refactor")
     items = [
         FanoutItem(
             key=t,
@@ -102,7 +106,8 @@ def execute(req: RefactorRequest) -> RefactorResponse:
                 prompt=_target_prompt(req, t),
                 mcp_config_inline=mcp_inline(),
                 add_dirs=[req.repo],
-                model=req.model,
+                model=req.model or default_model,
+                max_turns=max_turns,
                 cwd=req.repo,
             ),
         )

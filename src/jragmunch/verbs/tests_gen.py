@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ..defaults import for_verb
 from ..fanout import FanoutItem, FanoutOutcome, fan_out
 from ..mcp_config import as_inline_json
 from ..runtime import mcp_inline
@@ -67,11 +68,13 @@ def _target_prompt(req: TestsRequest, target: str) -> str:
 
 
 def _enumerate_targets(req: TestsRequest) -> list[str]:
+    default_model, max_turns = for_verb("tests")
     spec = RunSpec(
         prompt=_enumerate_prompt(req),
         mcp_config_inline=mcp_inline(),
         add_dirs=[req.repo],
-        model=req.model,
+        model=req.model or default_model,
+        max_turns=max_turns,
         cwd=req.repo,
     )
     result = run_subprocess(spec)
@@ -87,6 +90,7 @@ def execute(req: TestsRequest) -> TestsResponse:
     targets = _enumerate_targets(req)
     if not targets:
         return TestsResponse(targets=[])
+    default_model, max_turns = for_verb("tests")
     items = [
         FanoutItem(
             key=t,
@@ -94,7 +98,8 @@ def execute(req: TestsRequest) -> TestsResponse:
                 prompt=_target_prompt(req, t),
                 mcp_config_inline=mcp_inline(),
                 add_dirs=[req.repo],
-                model=req.model,
+                model=req.model or default_model,
+                max_turns=max_turns,
                 cwd=req.repo,
             ),
         )
