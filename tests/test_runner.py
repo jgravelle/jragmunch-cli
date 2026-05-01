@@ -22,9 +22,17 @@ def test_build_argv_inline_mcp_and_dirs(tmp_path: Path):
     argv = build_argv(spec)
     assert "--mcp-config" in argv
     assert '{"mcpServers":{}}' in argv
+    assert "--strict-mcp-config" in argv  # ensures user's global MCPs don't merge in
     assert "--add-dir" in argv and str(tmp_path) in argv
     assert "--model" in argv and "claude-opus-4-7" in argv
     assert "--permission-mode" in argv and "bypassPermissions" in argv
+
+
+def test_allowlist_covers_both_jcodemunch_name_variants():
+    from jragmunch.runner import DEFAULT_ALLOWED_TOOLS
+
+    assert "mcp__jcodemunch__*" in DEFAULT_ALLOWED_TOOLS
+    assert "mcp__jcodemunch-mcp__*" in DEFAULT_ALLOWED_TOOLS
 
 
 def test_format_command_quotes_spaces():

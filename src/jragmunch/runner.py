@@ -14,7 +14,13 @@ from pathlib import Path
 from .parsers import StreamResult, parse_stream
 
 
-DEFAULT_ALLOWED_TOOLS = ["mcp__jcodemunch__*", "Read", "Glob", "Grep"]
+DEFAULT_ALLOWED_TOOLS = [
+    "mcp__jcodemunch__*",
+    "mcp__jcodemunch-mcp__*",  # match user's globally-registered name variant
+    "Read",
+    "Glob",
+    "Grep",
+]
 
 
 @dataclass
@@ -41,9 +47,9 @@ def build_argv(spec: RunSpec) -> list[str]:
     if spec.allowed_tools:
         argv += ["--allowedTools", ",".join(spec.allowed_tools)]
     if spec.mcp_config_path:
-        argv += ["--mcp-config", str(spec.mcp_config_path)]
+        argv += ["--mcp-config", str(spec.mcp_config_path), "--strict-mcp-config"]
     elif spec.mcp_config_inline:
-        argv += ["--mcp-config", spec.mcp_config_inline]
+        argv += ["--mcp-config", spec.mcp_config_inline, "--strict-mcp-config"]
     for d in spec.add_dirs:
         argv += ["--add-dir", str(d)]
     if spec.model:
