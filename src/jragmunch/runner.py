@@ -5,6 +5,7 @@ This is the only module that touches `subprocess`. Everything else operates on
 """
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from dataclasses import dataclass, field
@@ -53,6 +54,18 @@ def build_argv(spec: RunSpec) -> list[str]:
     return argv
 
 
+def _build_subprocess_env(use_api: bool) -> dict[str, str]:
+    """Return the env dict for the spawned claude. Strips ANTHROPIC_API_KEY /
+    ANTHROPIC_AUTH_TOKEN unless --use-api was set, so claude falls back to
+    subscription (OAuth) auth and the user is not billed.
+    """
+    env = dict(os.environ)
+    if not use_api:
+        env.pop("ANTHROPIC_API_KEY", None)
+        env.pop("ANTHROPIC_AUTH_TOKEN", None)
+    return env
+
+
 def run(spec: RunSpec, *, timeout: float | None = None) -> StreamResult:
     from . import runtime  # local import to avoid cycle
 
@@ -66,6 +79,7 @@ def run(spec: RunSpec, *, timeout: float | None = None) -> StreamResult:
         text=True,
         timeout=timeout,
         check=False,
+        env=_build_subprocess_env(runtime.get().use_api),
     )
     result = parse_stream(proc.stdout.splitlines())
     if proc.returncode != 0 and not result.error:

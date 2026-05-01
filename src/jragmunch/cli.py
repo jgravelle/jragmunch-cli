@@ -39,11 +39,25 @@ def _root(
     ),
     with_docs: bool = typer.Option(False, "--with-docs", help="Also wire jdocmunch MCP."),
     with_data: bool = typer.Option(False, "--with-data", help="Also wire jdatamunch MCP."),
+    use_api: bool = typer.Option(
+        False,
+        "--use-api",
+        help=(
+            "Bill via the Anthropic API (using ANTHROPIC_API_KEY). "
+            "Default OFF: jragmunch strips the API key from the subprocess "
+            "env so claude uses your subscription (Max/Pro) and you pay $0."
+        ),
+    ),
 ) -> None:
     _globals["print_command"] = print_command
     _globals["with_docs"] = with_docs
     _globals["with_data"] = with_data
-    runtime.set_state(print_command=print_command, with_docs=with_docs, with_data=with_data)
+    runtime.set_state(
+        print_command=print_command,
+        with_docs=with_docs,
+        with_data=with_data,
+        use_api=use_api,
+    )
 
 
 def _finalize_meta(meta: dict) -> dict:

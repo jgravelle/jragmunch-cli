@@ -13,15 +13,23 @@ class Runtime:
     print_command: bool = False
     with_docs: bool = False
     with_data: bool = False
+    use_api: bool = False  # default: subscription auth (no API key billing)
 
 
 _state = Runtime()
 
 
-def set_state(*, print_command: bool = False, with_docs: bool = False, with_data: bool = False) -> None:
+def set_state(
+    *,
+    print_command: bool = False,
+    with_docs: bool = False,
+    with_data: bool = False,
+    use_api: bool = False,
+) -> None:
     _state.print_command = print_command
     _state.with_docs = with_docs
     _state.with_data = with_data
+    _state.use_api = use_api
 
 
 def get() -> Runtime:

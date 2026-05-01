@@ -2,6 +2,33 @@
 
 **Maximal token-efficient RAG for headless Claude.** Uses your existing `claude` CLI; auth-agnostic; slice-level retrieval powered by [jcodemunch-mcp](https://github.com/jgravelle/jcodemunch-mcp).
 
+## Billing: subscription by default, API on opt-in
+
+**By default, jragmunch never bills your Anthropic API account.** It strips
+`ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` from the subprocess environment
+before spawning `claude`, so the CLI falls back to OAuth and rides your
+**Max / Pro subscription** — you pay $0 in dollars, the work counts against
+your subscription's session limits.
+
+If you want to bill via the API instead, pass `--use-api`:
+
+```bash
+jragmunch --use-api ask "..."
+```
+
+Every verb prints the cost split:
+
+```
+[tokens in=24 out=1273  cost actual=$0.0000 (notional=$0.5334, auth=subscription)  time=27549ms]
+```
+
+- **`actual`** — what you were really billed (always $0 in subscription mode).
+- **`notional`** — what the work would have cost via the API. `claude -p`
+  computes this regardless of auth mode; we surface it as a "what it might
+  have cost" yardstick.
+- **`auth`** — `subscription` or `api`. Run `jragmunch doctor` to see your
+  resolved mode.
+
 ## Why
 
 Headless Claude (`claude -p`) is the right substrate for code automation — CI bots, batch refactors, fan-out agents, internal "chat with your repo" services. The default pattern is "stuff the relevant files into the prompt and pray," which burns tokens on code the model never needed.

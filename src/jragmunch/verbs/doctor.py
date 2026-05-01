@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from ..auth import detect_auth
 from ..mcp_config import as_inline_json
 from ..runtime import mcp_inline
 from ..parsers import has_server
@@ -15,6 +16,7 @@ class DoctorReport:
     claude_path: str | None
     jcodemunch_loaded: bool
     mcp_servers: list[str]
+    auth_mode: str = "subscription"
     error: str | None = None
 
     @property
@@ -27,6 +29,10 @@ class DoctorReport:
         lines.append(f"jcodemunch MCP:  {'loaded' if self.jcodemunch_loaded else 'NOT LOADED'}")
         if self.mcp_servers:
             lines.append(f"MCP servers:     {', '.join(self.mcp_servers)}")
+        if self.auth_mode == "api":
+            lines.append("auth mode:       API (--use-api set; you WILL be billed via ANTHROPIC_API_KEY)")
+        else:
+            lines.append("auth mode:       subscription (default; rides claude's OAuth login, you pay $0)")
         if self.error:
             lines.append(f"error:           {self.error}")
         lines.append("")
@@ -54,5 +60,6 @@ def diagnose() -> DoctorReport:
         claude_path=cp,
         jcodemunch_loaded=has_server(result, "jcodemunch"),
         mcp_servers=result.mcp_servers,
+        auth_mode=detect_auth(),
         error=result.error,
     )

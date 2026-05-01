@@ -19,7 +19,16 @@ AuthMode = Literal["api", "subscription"]
 
 
 def detect_auth() -> AuthMode:
-    """Return 'api' if an API key is set, else 'subscription'."""
+    """Return the auth mode the spawned `claude` subprocess will use.
+
+    jragmunch defaults to subscription mode: it strips ANTHROPIC_API_KEY
+    from the subprocess env before spawning claude, so claude falls back
+    to OAuth (Max/Pro subscription). Pass --use-api to opt in to billing.
+    """
+    from .runtime import get as _get_runtime
+
+    if not _get_runtime().use_api:
+        return "subscription"
     if os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"):
         return "api"
     return "subscription"
