@@ -6,8 +6,8 @@
 
 **By default, jragmunch never bills your Anthropic API account.** It strips
 `ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` from the subprocess environment
-before spawning `claude`, so the CLI falls back to OAuth and rides your
-**Max / Pro subscription** — you pay $0 in dollars, the work counts against
+before spawning `claude`, so the CLI uses your **Max / Pro Claude OAuth login
+while respecting their TOS** — you pay $0 in dollars, the work counts against
 your subscription's session limits.
 
 If you want to bill via the API instead, pass `--use-api`:
