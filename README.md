@@ -85,6 +85,43 @@ jragmunch index --repo .
 jragmunch run "Refactor the rate-limiter to use a token bucket"
 ```
 
+## Try the side-by-side demo: `AskClaude.py`
+
+`AskClaude.py` (in the repo root) is an interactive script that asks one
+question and shows you, in plain English, what jragmunch saved you.
+
+```bash
+git clone https://github.com/jgravelle/jragmunch-cli
+cd jragmunch-cli
+pip install -e ".[dev]"
+pip install tiktoken              # optional, for accurate token estimates
+python AskClaude.py
+```
+
+It prompts for a local repo path and a question, then prints the answer
+followed by a comparison block:
+
+```
+In its raw form, your request may have used as many as 799,037 tokens,
+at a cost of $11.99.
+
+Using jRagMunch, our call to Opus 4.7 only used 24,771 tokens.
+
+By using your subscription WITHIN THE TERMS OF ANTHROPIC'S TOS, you paid
+$0.00 and used a nearly imperceptible fractional percentage of your quota.
+```
+
+The "raw" number is a local projection of what pasting the entire repo
+into the prompt would have cost (capped at the model's input window).
+The jragmunch number is the actual marginal tokens this call consumed
+(input + cache creation + output — cache reads excluded since those are
+already-paid context being re-presented). Cost figures price the naive
+projection at Opus 4.7's uncached input rate; subscription mode pays $0
+either way.
+
+Use it as a one-shot demo, a sanity check on your own repos, or a
+template for embedding jragmunch in other tools.
+
 ## Verbs (v0.1)
 
 | Verb | Status | Purpose |

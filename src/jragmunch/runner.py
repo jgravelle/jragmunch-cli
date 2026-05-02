@@ -38,7 +38,19 @@ class RunSpec:
 
 
 def claude_path() -> str | None:
-    return shutil.which("claude")
+    """Locate claude. On Windows, prefer the underlying .exe over the .CMD
+    shim — cmd.exe truncates argv at embedded newlines, so multi-line prompts
+    silently lose `--output-format stream-json` and friends.
+    """
+    cmd = shutil.which("claude")
+    if cmd and cmd.lower().endswith(".cmd"):
+        candidate = (
+            Path(cmd).parent
+            / "node_modules" / "@anthropic-ai" / "claude-code" / "bin" / "claude.exe"
+        )
+        if candidate.exists():
+            return str(candidate)
+    return cmd
 
 
 def build_argv(spec: RunSpec) -> list[str]:

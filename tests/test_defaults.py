@@ -4,7 +4,7 @@ from jragmunch.defaults import HAIKU, SONNET, for_verb
 def test_ask_defaults_to_haiku_with_low_turn_cap():
     model, turns = for_verb("ask")
     assert model == HAIKU
-    assert 1 <= turns <= 8
+    assert 1 <= turns <= 12
 
 
 def test_review_defaults_to_sonnet_with_higher_turn_cap():

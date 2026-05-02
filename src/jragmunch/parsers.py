@@ -17,7 +17,10 @@ from typing import Iterable, Iterator
 class StreamResult:
     text: str = ""
     mcp_servers: list[str] = field(default_factory=list)
-    tokens_in: int = 0
+    tokens_in: int = 0  # delta only — excludes cache creation/read
+    tokens_in_total: int = 0  # input + cache_creation + cache_read (what was actually processed)
+    tokens_cache_creation: int = 0
+    tokens_cache_read: int = 0
     tokens_out: int = 0
     cost_usd: float = 0.0
     wall_time_ms: int = 0
@@ -55,6 +58,9 @@ def parse_stream(lines: Iterable[str]) -> StreamResult:
             out.text = ev.get("result", "") or out.text
             usage = ev.get("usage") or {}
             out.tokens_in = int(usage.get("input_tokens", 0))
+            out.tokens_cache_creation = int(usage.get("cache_creation_input_tokens", 0))
+            out.tokens_cache_read = int(usage.get("cache_read_input_tokens", 0))
+            out.tokens_in_total = out.tokens_in + out.tokens_cache_creation + out.tokens_cache_read
             out.tokens_out = int(usage.get("output_tokens", 0))
             out.cost_usd = float(ev.get("total_cost_usd", 0.0))
             out.wall_time_ms = int(ev.get("duration_ms", 0))
