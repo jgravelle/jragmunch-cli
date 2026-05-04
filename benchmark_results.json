@@ -1,0 +1,91 @@
+{
+  "repo": "C:\\tmp\\next.js",
+  "questions": [
+    {
+      "question": "What does the public API of this package look like?",
+      "slice": {
+        "tokens_in_total": 360031,
+        "tokens_in_uncached": 40,
+        "tokens_cache_creation": 50351,
+        "tokens_cache_read": 309640,
+        "tokens_out": 3757,
+        "cost_usd": 0.56363875,
+        "wall_time_ms": 117150,
+        "model": "claude-opus-4-7",
+        "error": null
+      },
+      "naive": {
+        "files_available": 21708,
+        "files_included": 1017,
+        "tokens_in_estimated": 799030,
+        "cost_usd_projected": 11.98545,
+        "estimator": "tiktoken-cl100k_base",
+        "capped_at_tokens": 800000,
+        "price_anchor_model": "claude-opus-4-7",
+        "price_per_m_input_usd": 15.0
+      }
+    },
+    {
+      "question": "Where is configuration loaded and how?",
+      "slice": {
+        "tokens_in_total": 97479,
+        "tokens_in_uncached": 13,
+        "tokens_cache_creation": 23962,
+        "tokens_cache_read": 73504,
+        "tokens_out": 723,
+        "cost_usd": 0.2046545,
+        "wall_time_ms": 12771,
+        "model": "claude-opus-4-7",
+        "error": null
+      },
+      "naive": {
+        "files_available": 21708,
+        "files_included": 1017,
+        "tokens_in_estimated": 799026,
+        "cost_usd_projected": 11.98539,
+        "estimator": "tiktoken-cl100k_base",
+        "capped_at_tokens": 800000,
+        "price_anchor_model": "claude-opus-4-7",
+        "price_per_m_input_usd": 15.0
+      }
+    },
+    {
+      "question": "What is the entrypoint and what does it do?",
+      "slice": {
+        "tokens_in_total": 370773,
+        "tokens_in_uncached": 30,
+        "tokens_cache_creation": 36121,
+        "tokens_cache_read": 334622,
+        "tokens_out": 2692,
+        "cost_usd": 0.4605172500000001,
+        "wall_time_ms": 62919,
+        "model": "claude-opus-4-7",
+        "error": null
+      },
+      "naive": {
+        "files_available": 21708,
+        "files_included": 1017,
+        "tokens_in_estimated": 799030,
+        "cost_usd_projected": 11.98545,
+        "estimator": "tiktoken-cl100k_base",
+        "capped_at_tokens": 800000,
+        "price_anchor_model": "claude-opus-4-7",
+        "price_per_m_input_usd": 15.0
+      }
+    }
+  ],
+  "summary": {
+    "model": "claude-opus-4-7",
+    "questions": 3,
+    "avg_cost_slice_actual_usd": 0.4096,
+    "avg_cost_naive_projected_usd": 11.9854,
+    "cost_reduction_x": 29.26,
+    "total_cost_slice_actual_usd": 1.2288,
+    "total_cost_naive_projected_usd": 35.9563,
+    "avg_tokens_in_slice_actual": 276094,
+    "avg_tokens_in_naive_projected": 799028,
+    "tokens_in_reduction_x": 2.89,
+    "headline": "29.3x cheaper per question on this repo ($0.41 vs $11.99, model=claude-opus-4-7)",
+    "note": "naive baseline = entire repo source pasted into prompt, capped at 800K tokens, priced at the model's uncached input rate. Slice cost is what claude actually billed (cache pricing included). Token counts are not directly comparable because slice loads MCP tool definitions; lead with the cost figure."
+  }
+}

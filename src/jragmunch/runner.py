@@ -75,15 +75,27 @@ def build_argv(spec: RunSpec) -> list[str]:
     return argv
 
 
-def _build_subprocess_env(use_api: bool) -> dict[str, str]:
-    """Return the env dict for the spawned claude. Strips ANTHROPIC_API_KEY /
-    ANTHROPIC_AUTH_TOKEN unless --use-api was set, so claude falls back to
-    subscription (OAuth) auth and the user is not billed.
+def _build_subprocess_env(
+    use_api: bool,
+    config_dir: Path | None = None,
+) -> dict[str, str]:
+    """Return the env dict for the spawned claude.
+
+    - Strips ``ANTHROPIC_API_KEY`` / ``ANTHROPIC_AUTH_TOKEN`` unless
+      ``use_api`` was set, so claude falls back to subscription (OAuth)
+      auth and the user is not billed.
+    - Preserves ``CLAUDE_CONFIG_DIR`` from the parent environment so
+      multi-profile users (work/personal) continue to swap via env var.
+    - When ``config_dir`` is set explicitly (via ``--config-dir``), it
+      overrides any inherited ``CLAUDE_CONFIG_DIR`` and is exported to
+      the subprocess (issue #1).
     """
     env = dict(os.environ)
     if not use_api:
         env.pop("ANTHROPIC_API_KEY", None)
         env.pop("ANTHROPIC_AUTH_TOKEN", None)
+    if config_dir is not None:
+        env["CLAUDE_CONFIG_DIR"] = str(config_dir)
     return env
 
 
@@ -93,6 +105,7 @@ def run(spec: RunSpec, *, timeout: float | None = None) -> StreamResult:
     if runtime.get().print_command:
         return StreamResult(text=format_command(spec))
     argv = build_argv(spec)
+    rt = runtime.get()
     proc = subprocess.run(
         argv,
         cwd=str(spec.cwd) if spec.cwd else None,
@@ -102,7 +115,7 @@ def run(spec: RunSpec, *, timeout: float | None = None) -> StreamResult:
         errors="replace",
         timeout=timeout,
         check=False,
-        env=_build_subprocess_env(runtime.get().use_api),
+        env=_build_subprocess_env(rt.use_api, rt.config_dir),
     )
     result = parse_stream(proc.stdout.splitlines())
     if proc.returncode != 0 and not result.error:

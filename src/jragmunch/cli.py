@@ -59,6 +59,17 @@ def _root(
             "env so claude uses your subscription (Max/Pro) and you pay $0."
         ),
     ),
+    config_dir: Path | None = typer.Option(
+        None,
+        "--config-dir",
+        help=(
+            "Override CLAUDE_CONFIG_DIR for the spawned `claude -p` "
+            "subprocess. Use this to swap between Claude profiles "
+            "(e.g. work and personal) without exporting CLAUDE_CONFIG_DIR "
+            "in your shell. When unset, jragmunch propagates whatever "
+            "CLAUDE_CONFIG_DIR is in the parent environment."
+        ),
+    ),
 ) -> None:
     _globals["print_command"] = print_command
     _globals["with_docs"] = with_docs
@@ -68,6 +79,7 @@ def _root(
         with_docs=with_docs,
         with_data=with_data,
         use_api=use_api,
+        config_dir=config_dir,
     )
 
 

@@ -51,6 +51,22 @@ jragmunch's defaults are tuned to that line.
 
 When in doubt, pass `--use-api` and bring your own `ANTHROPIC_API_KEY`.
 
+### Multi-profile users (`CLAUDE_CONFIG_DIR`)
+
+If you swap between Claude profiles (work and personal, for example) by
+exporting `CLAUDE_CONFIG_DIR`, jragmunch propagates that variable to the
+spawned `claude -p` subprocess automatically. You can also set it
+explicitly per-invocation with `--config-dir`, which overrides any
+inherited value:
+
+```bash
+# Inherit from shell env
+CLAUDE_CONFIG_DIR=~/.claude.work jragmunch ask "..."
+
+# Or set explicitly per-call
+jragmunch --config-dir ~/.claude.personal ask "..."
+```
+
 ### What jragmunch is *not*
 
 jragmunch is **not** an "agent harness" or a re-implementation of Claude Code.
