@@ -50,3 +50,72 @@ def test_parse_marks_error():
     ]
     r = parse_stream(lines)
     assert r.error is not None
+
+
+def test_assistant_text_accumulates_when_result_is_empty():
+    """Regression: turn ends in a tool_use block, so the terminal `result` event
+    has `result == ""`. Previously parse_stream dropped the model's findings on
+    the floor despite usage.output_tokens being non-zero. The accumulator must
+    reconstruct the text from the assistant message content blocks.
+    """
+    lines = [
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {"type": "text", "text": "## Findings\n\n"},
+                        {"type": "text", "text": "- 1.1 [high] foo\n"},
+                    ]
+                },
+            }
+        ),
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {"type": "tool_use", "name": "mcp__jcodemunch__get_symbol_source"},
+                    ]
+                },
+            }
+        ),
+        json.dumps(
+            {
+                "type": "result",
+                "result": "",
+                "usage": {"input_tokens": 13, "output_tokens": 10321},
+                "total_cost_usd": 1.22,
+                "duration_ms": 398454,
+            }
+        ),
+    ]
+    r = parse_stream(lines)
+    assert r.text == "## Findings\n\n- 1.1 [high] foo\n"
+    assert r.tokens_out == 10321
+    assert r.cost_usd == 1.22
+
+
+def test_result_text_wins_when_populated():
+    """Clean text-only turns should still resolve to the terminal result event's
+    `result` field — the canonical answer. The accumulator only fills in when
+    the result event is empty.
+    """
+    lines = [
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {"content": [{"type": "text", "text": "draft"}]},
+            }
+        ),
+        json.dumps(
+            {
+                "type": "result",
+                "result": "final canonical answer",
+                "usage": {"input_tokens": 10, "output_tokens": 5},
+                "duration_ms": 100,
+            }
+        ),
+    ]
+    r = parse_stream(lines)
+    assert r.text == "final canonical answer"
