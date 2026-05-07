@@ -53,9 +53,18 @@ def parse_stream(lines: Iterable[str]) -> StreamResult:
                     s.get("name", "") if isinstance(s, dict) else str(s) for s in servers
                 ]
             out.model = ev.get("model", out.model)
+        elif kind == "assistant":
+            msg = ev.get("message") or {}
+            for block in (msg.get("content") or []):
+                if isinstance(block, dict) and block.get("type") == "text":
+                    text = block.get("text") or ""
+                    if text:
+                        out.text = (out.text + text) if out.text else text
         elif kind == "result":
             out.raw_result = ev
-            out.text = ev.get("result", "") or out.text
+            final_text = ev.get("result") or ""
+            if final_text:
+                out.text = final_text
             usage = ev.get("usage") or {}
             out.tokens_in = int(usage.get("input_tokens", 0))
             out.tokens_cache_creation = int(usage.get("cache_creation_input_tokens", 0))

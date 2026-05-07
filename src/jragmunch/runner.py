@@ -17,6 +17,10 @@ from .parsers import StreamResult, parse_stream
 DEFAULT_ALLOWED_TOOLS = [
     "mcp__jcodemunch__*",
     "mcp__jcodemunch-mcp__*",  # match user's globally-registered name variant
+    "mcp__jdocmunch__*",
+    "mcp__jdocmunch-mcp__*",
+    "mcp__jdatamunch__*",
+    "mcp__jdatamunch-mcp__*",
     "Read",
     "Glob",
     "Grep",
