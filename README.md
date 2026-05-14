@@ -8,15 +8,27 @@
 
 **Maximal token-efficient RAG for headless Claude.** Uses your existing `claude` CLI; auth-agnostic; slice-level retrieval powered by [jcodemunch-mcp](https://github.com/jgravelle/jcodemunch-mcp).
 
-## Billing: subscription by default, API on opt-in
+## Billing: SDK credit by default, API on opt-in
 
-**By default, jragmunch never bills your Anthropic API account.** It strips
-`ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` from the subprocess environment
-before spawning `claude`, so the CLI uses your **Max / Pro Claude OAuth login
-while respecting their TOS** — you pay $0 in dollars, the work counts against
-your subscription's session limits.
+**Starting June 15, 2026**, Anthropic's Pro and Max subscriptions include a
+**$20/month Agent SDK credit** covering `claude -p` and SDK-based tools
+like jragmunch. By default, jragmunch strips `ANTHROPIC_API_KEY` and
+`ANTHROPIC_AUTH_TOKEN` from the subprocess environment before spawning
+`claude`, so the CLI uses your Claude OAuth login and runs against that
+SDK credit. ([Anthropic announcement](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan))
 
-If you want to bill via the API instead, pass `--use-api`:
+- **Inside the $20/mo SDK credit:** $0 actual dollars.
+- **Past the $20:** Anthropic's "extra usage" kicks in if you've enabled
+  it (opt-in, manually toggleable in Anthropic's billing settings);
+  otherwise the call fails. Heavy users will want to either enable extra
+  usage or pass `--use-api`.
+- **Your subscription session limits are not touched.** Those stay
+  reserved for interactive use of Claude Code and chat. (Pre-June-15
+  behavior was the opposite: programmatic `claude -p` consumed session
+  quota. The Agent SDK credit replaces that arrangement.)
+
+If you'd rather bill via the API directly, pass `--use-api` and bring
+your own `ANTHROPIC_API_KEY`:
 
 ```bash
 jragmunch --use-api ask "..."
@@ -28,26 +40,30 @@ Every verb prints the cost split:
 [tokens in=24 out=1273  cost actual=$0.0000 (notional=$0.5334, auth=subscription)  time=27549ms]
 ```
 
-- **`actual`** — what you were really billed (always $0 in subscription mode).
+- **`actual`** — dollars billed to your Anthropic account by this call.
+  In subscription mode this is $0 while you're inside the SDK credit;
+  it goes non-zero only if extra usage is enabled and the credit is
+  exhausted.
 - **`notional`** — what the work would have cost via the API. `claude -p`
-  computes this regardless of auth mode; we surface it as a "what it might
-  have cost" yardstick.
-- **`auth`** — `subscription` or `api`. Run `jragmunch doctor` to see your
-  resolved mode.
+  computes this regardless of auth mode; we surface it as a "what it
+  might have cost" yardstick. Useful for tracking SDK-credit burn rate
+  even while `actual` stays at $0.
+- **`auth`** — `subscription` or `api`. Run `jragmunch doctor` to see
+  your resolved mode.
 
 ### When to use which mode
 
 Anthropic's [Claude Code Legal and Compliance docs](https://code.claude.com/docs/en/legal-and-compliance)
-distinguish *individual ordinary use* from *business / always-on / multi-contributor* use.
-jragmunch's defaults are tuned to that line.
+distinguish *individual ordinary use* from *business / always-on /
+multi-contributor* use. jragmunch's defaults are tuned to that line.
 
 | You are… | Recommended mode | Why |
 |---|---|---|
-| A solo developer running verbs interactively on your own machine | **subscription** (default) | Anthropic explicitly permits "ordinary, individual usage of Claude Code." |
-| A solo developer wiring `jragmunch review` into your **own personal repo's CI** with `CLAUDE_CODE_OAUTH_TOKEN` | **subscription** (default) | Permitted as long as you're the only contributor whose work it acts on. |
+| A solo developer running verbs interactively on your own machine | **subscription** (default) | Anthropic explicitly permits "ordinary, individual usage of Claude Code." The $20/mo SDK credit comfortably covers typical interactive use. |
+| A solo developer wiring `jragmunch review` into your **own personal repo's CI** with `CLAUDE_CODE_OAUTH_TOKEN` | **subscription** (default) | Permitted as long as you're the only contributor whose work it acts on. Watch the `notional` cost line — heavy CI use can burn the $20 credit faster than interactive use. |
 | A team running CI bots on a shared/commercial repo | `--use-api` | Anthropic requires API keys for "business or always-on deployments." |
 | Multi-developer or commercial automation | `--use-api` | Subscriptions are not the right billing surface for shared use. |
-| Heavy parallel fan-out (`refactor --parallel 16`, `tests --max 100`) | `--use-api` | High-throughput patterns aren't what subscription session limits are designed for. |
+| Heavy parallel fan-out (`refactor --parallel 16`, `tests --max 100`) | `--use-api` | A single fan-out can blow past the $20/mo SDK credit; API-mode keeps the cost predictable and avoids extra-usage opt-in. |
 
 When in doubt, pass `--use-api` and bring your own `ANTHROPIC_API_KEY`.
 
