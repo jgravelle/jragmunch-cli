@@ -11,17 +11,18 @@
 ## Billing: SDK credit by default, API on opt-in
 
 **Starting June 15, 2026**, Anthropic's Pro and Max subscriptions include a
-**$20/month Agent SDK credit** covering `claude -p` and SDK-based tools
-like jragmunch. By default, jragmunch strips `ANTHROPIC_API_KEY` and
-`ANTHROPIC_AUTH_TOKEN` from the subprocess environment before spawning
-`claude`, so the CLI uses your Claude OAuth login and runs against that
-SDK credit. ([Anthropic announcement](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan))
+**monthly Agent SDK credit** that scales with subscription tier (**$20**
+Pro, **$100** Max 5x, **$200** Max 20x) covering `claude -p` and
+SDK-based tools like jragmunch. By default, jragmunch strips
+`ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` from the subprocess
+environment before spawning `claude`, so the CLI uses your Claude OAuth
+login and runs against that SDK credit. ([Anthropic announcement](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan))
 
-- **Inside the $20/mo SDK credit:** $0 actual dollars.
-- **Past the $20:** Anthropic's "extra usage" kicks in if you've enabled
-  it (opt-in, manually toggleable in Anthropic's billing settings);
-  otherwise the call fails. Heavy users will want to either enable extra
-  usage or pass `--use-api`.
+- **Inside your monthly SDK credit:** $0 actual dollars.
+- **Past the credit:** Anthropic's "extra usage" kicks in if you've
+  enabled it (opt-in, manually toggleable in Anthropic's billing
+  settings); otherwise the call fails. Heavy users will want to either
+  enable extra usage or pass `--use-api`.
 - **Your subscription session limits are not touched.** Those stay
   reserved for interactive use of Claude Code and chat. (Pre-June-15
   behavior was the opposite: programmatic `claude -p` consumed session
@@ -41,9 +42,9 @@ Every verb prints the cost split:
 ```
 
 - **`actual`** — dollars billed to your Anthropic account by this call.
-  In subscription mode this is $0 while you're inside the SDK credit;
-  it goes non-zero only if extra usage is enabled and the credit is
-  exhausted.
+  In subscription mode this is $0 while you're inside your monthly SDK
+  credit; it goes non-zero only if extra usage is enabled and the
+  credit is exhausted.
 - **`notional`** — what the work would have cost via the API. `claude -p`
   computes this regardless of auth mode; we surface it as a "what it
   might have cost" yardstick. Useful for tracking SDK-credit burn rate
@@ -59,11 +60,11 @@ multi-contributor* use. jragmunch's defaults are tuned to that line.
 
 | You are… | Recommended mode | Why |
 |---|---|---|
-| A solo developer running verbs interactively on your own machine | **subscription** (default) | Anthropic explicitly permits "ordinary, individual usage of Claude Code." The $20/mo SDK credit comfortably covers typical interactive use. |
-| A solo developer wiring `jragmunch review` into your **own personal repo's CI** with `CLAUDE_CODE_OAUTH_TOKEN` | **subscription** (default) | Permitted as long as you're the only contributor whose work it acts on. Watch the `notional` cost line — heavy CI use can burn the $20 credit faster than interactive use. |
+| A solo developer running verbs interactively on your own machine | **subscription** (default) | Anthropic explicitly permits "ordinary, individual usage of Claude Code." The monthly SDK credit comfortably covers typical interactive use. |
+| A solo developer wiring `jragmunch review` into your **own personal repo's CI** with `CLAUDE_CODE_OAUTH_TOKEN` | **subscription** (default) | Permitted as long as you're the only contributor whose work it acts on. Watch the `notional` cost line — heavy CI use can burn the SDK credit faster than interactive use. |
 | A team running CI bots on a shared/commercial repo | `--use-api` | Anthropic requires API keys for "business or always-on deployments." |
 | Multi-developer or commercial automation | `--use-api` | Subscriptions are not the right billing surface for shared use. |
-| Heavy parallel fan-out (`refactor --parallel 16`, `tests --max 100`) | `--use-api` | A single fan-out can blow past the $20/mo SDK credit; API-mode keeps the cost predictable and avoids extra-usage opt-in. |
+| Heavy parallel fan-out (`refactor --parallel 16`, `tests --max 100`) | `--use-api` | A single fan-out can blow past your monthly SDK credit; API-mode keeps the cost predictable and avoids extra-usage opt-in. |
 
 When in doubt, pass `--use-api` and bring your own `ANTHROPIC_API_KEY`.
 

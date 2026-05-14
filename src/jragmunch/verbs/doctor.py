@@ -32,7 +32,7 @@ class DoctorReport:
         if self.auth_mode == "api":
             lines.append("auth mode:       API (--use-api set; you WILL be billed via ANTHROPIC_API_KEY)")
         else:
-            lines.append("auth mode:       subscription (default; OAuth login, billed against Anthropic's $20/mo Agent SDK credit. $0 until the credit is exhausted; see README for credit-exhaustion contract.)")
+            lines.append("auth mode:       subscription (default; OAuth login, billed against Anthropic's monthly Agent SDK credit. $0 until the credit is exhausted; see README for tier-scaled credit amounts and the credit-exhaustion contract.)")
         if self.error:
             lines.append(f"error:           {self.error}")
         lines.append("")
